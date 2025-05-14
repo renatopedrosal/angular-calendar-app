@@ -16,21 +16,47 @@
 .appointment {
   position: relative;
   z-index: 9;
-  padding: 5px 10px;
-  margin-top: 2px;
+  padding: 5px 10px; // Padding interno para o conteúdo (título)
+  margin-top: 2px;   // Margem acima de cada evento
+  // margin-bottom: 2px; // Opcional: Adicionar se quiser espaçamento inferior também
   font-size: 12px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: lavender;
-  margin-left: 3px;
-  margin-right: 3px;
-  border-radius: 5px;
+  align-items: center; // Alinha o texto/conteúdo verticalmente
+  // background: lavender; // A cor de fundo principal virá do [ngStyle] no HTML
   cursor: pointer;
+  // As margens laterais e o border-radius serão aplicados especificamente abaixo
 
   span {
     text-align: left;
-    line-height: 15px;
+    line-height: 15px; // Como definido anteriormente
+    white-space: nowrap;     // Impede que o texto do título quebre em várias linhas
+    overflow: hidden;        // Esconde o texto que excede a largura do span
+    text-overflow: ellipsis; // Adiciona "..." ao final do texto truncado
+    min-width: 0; // Ajuda no comportamento do flex e text-overflow em alguns navegadores
+  }
+
+  // Estilos para o segmento inicial de um evento
+  &.event-start {
+    margin-left: 3px; // Mantém a margem esquerda original
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    // Se for um evento de um dia, também terá a classe .event-end,
+    // aplicando as bordas e margens corretas.
+  }
+
+  // Estilos para os segmentos do meio de um evento
+  &.event-middle {
+    margin-left: 0;  // Remove a margem esquerda para conectar ao segmento anterior
+    margin-right: 0; // Remove a margem direita para conectar ao próximo segmento
+    border-radius: 0; // Remove os cantos arredondados
+    // O padding interno (5px 10px) ainda se aplica, mantendo o espaço para o conteúdo (mesmo que oculto)
+  }
+
+  // Estilos para o segmento final de um evento
+  &.event-end {
+    margin-right: 3px; // Mantém a margem direita original
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
   }
 }
 .calendar-view-month {

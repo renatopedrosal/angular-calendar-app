@@ -108,8 +108,11 @@
               <ng-container *ngFor="let appointment of appointments">
                 <div
                   tabindex="0"
-                  *ngIf="isSameDate(appointment.date, date)"
+                  *ngIf="isDateInRange(date, appointment.startDate, appointment.endDate)"
                   class="appointment"
+                  [class.event-start]="isSameDate(appointment.startDate, date)"
+                  [class.event-end]="isSameDate(appointment.endDate, date)"
+                  [class.event-middle]="!isSameDate(appointment.startDate, date) && !isSameDate(appointment.endDate, date) && isDateInRange(date, appointment.startDate, appointment.endDate)"
                   cdkDrag
                   cdkDragHandle
                   [cdkDragData]="appointment"
@@ -118,7 +121,9 @@
                   (keydown.enter)="editAppointment(appointment, $event)"
                   (keydown.space)="editAppointment(appointment, $event)"
                 >
-                  <span>{{ appointment.title }}</span>
+                  <span [style.visibility]="(isSameDate(appointment.startDate, date) || isSameDate(appointment.startDate, appointment.endDate)) ? 'visible' : 'hidden'">
+  {{ appointment.title }}
+</span>
                 </div>
               </ng-container>
             </div>

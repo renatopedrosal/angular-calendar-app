@@ -3,7 +3,19 @@
   .form-field {
     width: 100%;
   }
+
+  .form-row {
+    display: flex;
+    gap: 16px; // Espaço entre os campos na mesma linha
+    .form-field-half {
+      width: calc(50% - 8px); // Ajusta a largura para dois campos por linha
+    }
+  }
+
   .error {
     color: red;
+    font-size: 0.75em; // Tamanho menor para a mensagem de erro
+    margin-top: -0.5em; // Ajuste para aproximar do campo
+    margin-bottom: 1em;
   }
 }

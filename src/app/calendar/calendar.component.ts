@@ -1,12 +1,13 @@
-import { Component } from '@angular/core';
-
-import { MatDialog } from '@angular/material/dialog';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { AppointmentDialogComponent } from '../appointment-dialog/appointment-dialog.component';
+import { Component } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { AppointmentDialogComponent, AppointmentDialogData } from '../appointment-dialog/appointment-dialog.component';
 
+// Defina a interface Appointment aqui ou importe-a se estiver em um arquivo separado
 interface Appointment {
   uuid?: string;
-  date: Date;
+  startDate: Date; // Alterado de 'date'
+  endDate: Date;   // Nova propriedade para a data de término
   title: string;
   startTime: string;
   endTime: string;
@@ -17,6 +18,17 @@ export enum CalendarView {
   Month = 'month',
   Week = 'week',
   Day = 'day',
+}
+
+export interface LayoutEvent {
+  appointment: Appointment;
+  layoutTrack: number;         // A faixa vertical (0, 1, 2...)
+  startDayIndexInWeek: number; // 0 (Sun) a 6 (Sat) - início do segmento nesta semana
+  endDayIndexInWeek: number;   // 0 (Sun) a 6 (Sat) - fim do segmento nesta semana
+  isContinuation: boolean;     // Se o evento começou antes desta semana
+  continuesBeyond: boolean;    // Se o evento continua após esta semana
+  originalStartDate: Date;     // Para referência ao início real do evento
+  originalEndDate: Date;       // Para referência ao fim real do evento
 }
 
 @Component({
@@ -31,193 +43,41 @@ export class CalendarComponent {
   weekDays: string[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   monthDays: Date[] = [];
   appointments: Appointment[] = [
+    // Seus dados de exemplo de eventos (lembre-se de usar startDate e endDate)
+    // Exemplo:
     {
       uuid: '00000000-0000-0000-0000-000000000001',
-      date: new Date(
-        new Date().getFullYear(),
-        new Date().getMonth(),
-        new Date().getDate()
-      ),
+      startDate: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()),
+      endDate: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()),
       title: 'Meeting with Bob',
       startTime: '09:00',
       endTime: '10:00',
+      color: 'lightblue'
     },
     {
-      uuid: '00000000-0000-0000-0000-000000000002',
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), 2),
-      title: 'Lunch with Alice',
-      startTime: '12:00',
-      endTime: '13:00',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-000000000003',
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), 3),
-      title: 'Project Deadline',
-      startTime: '15:00',
-      endTime: '16:00',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-000000000004',
-      date: new Date(
-        new Date().getFullYear(),
-        new Date().getMonth(),
-        new Date().getDate()
-      ),
-      title: 'Doctor Appointment',
+      uuid: '00000000-0000-0000-0000-0000000Multi',
+      startDate: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 1),
+      endDate: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 3),
+      title: 'Multi-day Conference',
       startTime: '10:00',
-      endTime: '11:00',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-000000000005',
-      date: new Date(
-        new Date().getFullYear(),
-        new Date().getMonth(),
-        new Date().getDate() + 1
-      ),
-      title: 'Team Meeting',
-      startTime: '14:00',
-      endTime: '15:00',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-000000000006',
-      date: new Date(
-        new Date().getFullYear(),
-        new Date().getMonth(),
-        new Date().getDate()
-      ),
-      title: 'Coffee with Mike',
-      startTime: '11:00',
-      endTime: '12:00',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-000000000007',
-      date: new Date(
-        new Date().getFullYear(),
-        new Date().getMonth(),
-        new Date().getDate() + 4
-      ),
-      title: 'Client Call',
-      startTime: '09:30',
-      endTime: '10:30',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-000000000008',
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), 8),
-      title: 'Gym',
-      startTime: '17:00',
-      endTime: '18:00',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-000000000009',
-      date: new Date(
-        new Date().getFullYear(),
-        new Date().getMonth(),
-        new Date().getDate() - 1
-      ),
-      title: 'Dentist Appointment',
-      startTime: '11:30',
-      endTime: '12:30',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-00000000000a',
-      date: new Date(
-        new Date().getFullYear(),
-        new Date().getMonth(),
-        new Date().getDate() - 2
-      ),
-      title: 'Birthday Party',
-      startTime: '19:00',
-      endTime: '21:00',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-00000000000b',
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), 11),
-      title: 'Conference',
-      startTime: '13:00',
-      endTime: '14:00',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-00000000000c',
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), 12),
-      title: 'Workshop',
-      startTime: '10:00',
-      endTime: '12:00',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-00000000000d',
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), 13),
-      title: 'Brunch with Sarah',
-      startTime: '11:00',
-      endTime: '12:00',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-00000000000e',
-      date: new Date(
-        new Date().getFullYear(),
-        new Date().getMonth(),
-        new Date().getDate() + 2
-      ),
-      title: 'Networking Event',
-      startTime: '18:00',
-      endTime: '20:00',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-00000000000f',
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), 16),
-      title: 'Yoga Class',
-      startTime: '07:00',
-      endTime: '08:00',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-000000000010',
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), 16),
-      title: 'Strategy Meeting',
-      startTime: '10:00',
-      endTime: '11:30',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-000000000011',
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), 17),
-      title: 'Call with Investor',
-      startTime: '14:00',
-      endTime: '15:00',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-000000000012',
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), 18),
-      title: 'Team Lunch',
-      startTime: '12:00',
-      endTime: '13:00',
-    },
-    {
-      uuid: '00000000-0000-0000-0000-000000000013',
-      date: new Date(
-        new Date().getFullYear(),
-        new Date().getMonth(),
-        new Date().getDate() + 3
-      ),
-      title: 'HR Meeting',
-      startTime: '16:00',
       endTime: '17:00',
+      color: 'lightgreen'
     },
-    {
-      uuid: '00000000-0000-0000-0000-000000000014',
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), 20),
-      title: 'Board Meeting',
-      startTime: '11:00',
-      endTime: '12:00',
-    },
+     // Adicione mais exemplos conforme necessário, seguindo o formato de startDate e endDate
+     // Certifique-se de que todos os seus exemplos de 'appointments' iniciais
+     // foram atualizados para usar 'startDate' e 'endDate'.
   ];
   currentView: CalendarView = CalendarView.Month;
   timeSlots: string[] = [];
-
   weeks: Date[][] = [];
 
   public CalendarView = CalendarView;
 
   constructor(public dialog: MatDialog) {
     this.appointments.forEach((appointment) => {
-      appointment.color = this.getRandomColor();
+      if (!appointment.color) { // Adiciona cor apenas se não existir
+        appointment.color = this.getRandomColor();
+      }
     });
     this.generateView(this.currentView, this.viewDate);
     this.generateTimeSlots();
@@ -243,45 +103,63 @@ export class CalendarComponent {
     const start = new Date(date.getFullYear(), date.getMonth(), 1);
     const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
     this.weeks = [];
-    this.monthDays = [];
+    // this.monthDays = []; // monthDays é preenchido em generateWeekView e generateDayView,
+                           // para a visão mensal, os dias estão dentro de this.weeks
+    let currentMonthDays: Date[] = []; // Usado para popular this.monthDays para a lógica de isCurrentMonth
+
     let week: Date[] = [];
 
-    for (let day = start.getDay(); day > 0; day--) {
+    // Dias do mês anterior para preencher a primeira semana
+    const firstDayOfMonth = start.getDay();
+    for (let i = 0; i < firstDayOfMonth; i++) {
       const prevDate = new Date(start);
-      prevDate.setDate(start.getDate() - day);
+      prevDate.setDate(start.getDate() - (firstDayOfMonth - i));
       week.push(prevDate);
-      this.monthDays.push(prevDate);
+      currentMonthDays.push(prevDate);
     }
 
+    // Dias do mês atual
     for (let day = 1; day <= end.getDate(); day++) {
       const currentDate = new Date(date.getFullYear(), date.getMonth(), day);
-      this.monthDays.push(currentDate);
       week.push(currentDate);
+      currentMonthDays.push(currentDate);
       if (week.length === 7) {
         this.weeks.push(week);
         week = [];
       }
     }
 
-    for (let day = 1; this.monthDays.length % 7 !== 0; day++) {
+    // Dias do próximo mês para preencher a última semana
+    let dayIndex = 1;
+    while (week.length > 0 && week.length < 7) {
       const nextDate = new Date(end);
-      nextDate.setDate(end.getDate() + day);
-      this.monthDays.push(nextDate);
-    }
-
-    for (let day = 1; week.length < 7; day++) {
-      const nextDate = new Date(end);
-      nextDate.setDate(end.getDate() + day);
+      nextDate.setDate(end.getDate() + dayIndex++);
       week.push(nextDate);
+      currentMonthDays.push(nextDate);
+    }
+    if (week.length > 0) { // Garante que a última semana seja adicionada se não estiver completa
+        this.weeks.push(week);
     }
 
-    if (week.length > 0) {
-      this.weeks.push(week);
+
+    // Garante que haja 6 semanas para uma altura consistente do calendário
+     while (this.weeks.length < 6) {
+        const lastDayOfLastWeek = this.weeks[this.weeks.length - 1][6];
+        week = [];
+        for (let i = 1; i <= 7; i++) {
+            const nextDate = new Date(lastDayOfLastWeek);
+            nextDate.setDate(lastDayOfLastWeek.getDate() + i);
+            week.push(nextDate);
+            currentMonthDays.push(nextDate);
+        }
+        this.weeks.push(week);
     }
+    this.monthDays = currentMonthDays; // Para isCurrentMonth funcionar corretamente
   }
 
+
   generateWeekView(date: Date) {
-    const startOfWeek = this.startOfWeek(date);
+    const startOfWeek = this.getStartOfWeek(date); // Corrigido para usar getStartOfWeek
     this.monthDays = [];
 
     for (let day = 0; day < 7; day++) {
@@ -292,11 +170,12 @@ export class CalendarComponent {
   }
 
   generateDayView(date: Date) {
-    this.monthDays = [date];
+    this.monthDays = [new Date(date)]; // Garante que é uma nova instância
   }
 
   generateTimeSlots() {
-    for (let hour = 0; hour <= 24; hour++) {
+    this.timeSlots = []; // Limpa os slots antes de gerar
+    for (let hour = 0; hour < 24; hour++) { // Alterado para < 24 para não ter 24:00
       const time = hour < 10 ? `0${hour}:00` : `${hour}:00`;
       this.timeSlots.push(time);
     }
@@ -307,49 +186,50 @@ export class CalendarComponent {
     this.generateView(this.currentView, this.viewDate);
   }
 
-  startOfWeek(date: Date): Date {
-    const start = new Date(date);
-    const day = start.getDay();
-    const diff = start.getDate() - day + (day === 0 ? -6 : 1);
-    return new Date(start.setDate(diff));
+  // Renomeado de startOfWeek para getStartOfWeek para clareza
+  getStartOfWeek(date: Date): Date {
+    const dt = new Date(date); // Cria uma nova instância para não modificar a original
+    const day = dt.getDay();
+    const diff = dt.getDate() - day + (day === 0 ? -6 : 0); // Ajustado para domingo ser o primeiro dia da semana
+    return new Date(dt.setDate(diff));
   }
 
   previous() {
-    if (this.currentView === 'month') {
+    if (this.currentView === CalendarView.Month) {
       this.viewDate = new Date(
-        this.viewDate.setMonth(this.viewDate.getMonth() - 1)
+        this.viewDate.getFullYear(),
+        this.viewDate.getMonth() - 1,
+        1 // Define para o primeiro dia do mês anterior
       );
-      this.generateMonthView(this.viewDate);
-    } else if (this.currentView === 'week') {
+    } else if (this.currentView === CalendarView.Week) {
       this.viewDate = new Date(
         this.viewDate.setDate(this.viewDate.getDate() - 7)
       );
-      this.generateWeekView(this.viewDate);
-    } else {
+    } else { // CalendarView.Day
       this.viewDate = new Date(
         this.viewDate.setDate(this.viewDate.getDate() - 1)
       );
-      this.generateDayView(this.viewDate);
     }
+    this.generateView(this.currentView, this.viewDate);
   }
 
   next() {
-    if (this.currentView === 'month') {
+    if (this.currentView === CalendarView.Month) {
       this.viewDate = new Date(
-        this.viewDate.setMonth(this.viewDate.getMonth() + 1)
+        this.viewDate.getFullYear(),
+        this.viewDate.getMonth() + 1,
+        1 // Define para o primeiro dia do próximo mês
       );
-      this.generateMonthView(this.viewDate);
-    } else if (this.currentView === 'week') {
+    } else if (this.currentView === CalendarView.Week) {
       this.viewDate = new Date(
         this.viewDate.setDate(this.viewDate.getDate() + 7)
       );
-      this.generateWeekView(this.viewDate);
-    } else {
+    } else { // CalendarView.Day
       this.viewDate = new Date(
         this.viewDate.setDate(this.viewDate.getDate() + 1)
       );
-      this.generateDayView(this.viewDate);
     }
+    this.generateView(this.currentView, this.viewDate);
   }
 
   isToday(date: Date): boolean {
@@ -373,25 +253,36 @@ export class CalendarComponent {
   }
 
   isSameDate(date1: Date, date2: Date): boolean {
+    if (!date1 || !date2) return false;
     return (
-      date1.getDate() === date2.getDate() &&
+      date1.getFullYear() === date2.getFullYear() &&
       date1.getMonth() === date2.getMonth() &&
-      date1.getFullYear() === date2.getFullYear()
+      date1.getDate() === date2.getDate()
     );
   }
 
+  isDateInRange(date: Date, startDate: Date, endDate: Date): boolean {
+    if (!date || !startDate || !endDate) return false;
+    const d = new Date(date);
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    d.setHours(0, 0, 0, 0);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    return d >= start && d <= end;
+  }
+
+
   selectDate(date?: Date, startTime?: string) {
-    if (date) {
-      this.selectedDate = date;
-    } else {
-      this.selectedDate = new Date();
-    }
+    this.selectedDate = date ? new Date(date) : new Date(); // Cria nova instância
     this.selectedStartTime = startTime;
     this.openDialog();
   }
 
   generateUUID(): string {
-    let d = new Date().getTime(); //Timestamp
+    let d = new Date().getTime();
     let d2 =
       (typeof performance !== 'undefined' &&
         performance.now &&
@@ -400,13 +291,11 @@ export class CalendarComponent {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
       /[xy]/g,
       function (c) {
-        let r = Math.random() * 16; //random number between 0 and 16
+        let r = Math.random() * 16;
         if (d > 0) {
-          //Use timestamp until depleted
           r = (d + r) % 16 | 0;
           d = Math.floor(d / 16);
         } else {
-          //Use microseconds since page-load if supported
           r = (d2 + r) % 16 | 0;
           d2 = Math.floor(d2 / 16);
         }
@@ -416,77 +305,146 @@ export class CalendarComponent {
   }
 
   addAppointment(
-    date: Date,
+    startDate: Date,
+    endDate: Date,
     title: string,
     startTime: string,
     endTime: string
   ) {
     this.appointments.push({
       uuid: this.generateUUID(),
-      date,
+      startDate,
+      endDate,
       title,
       startTime,
       endTime,
       color: this.getRandomColor(),
     });
+    // Opcional: forçar a re-renderização ou atualização da view se necessário
+    // this.generateView(this.currentView, this.viewDate);
   }
 
   deleteAppointment(appointment: Appointment, event: Event) {
     event.stopPropagation();
-    const index = this.appointments.indexOf(appointment);
+    const index = this.appointments.findIndex(app => app.uuid === appointment.uuid);
     if (index > -1) {
       this.appointments.splice(index, 1);
+       // Opcional: forçar a re-renderização ou atualização da view se necessário
+       // this.generateView(this.currentView, this.viewDate);
     }
   }
 
   openDialog(): void {
-    const hour = new Date().getHours();
-    const minutes = new Date().getMinutes();
-    const h = hour < 10 ? `0${hour}` : hour;
-    const m = minutes < 10 ? `0${minutes}` : minutes;
-    const dialogRef = this.dialog.open(AppointmentDialogComponent, {
-      width: '500px',
-      panelClass: 'dialog-container',
-      data: {
-        date: this.selectedDate,
-        title: '',
-        startTime: this.selectedStartTime || `${h}:${m}`,
-        endTime: this.selectedStartTime || `${h}:${m}`,
-      },
-    });
+  const now = new Date();
+  const selectedDateForDialog = this.selectedDate ? new Date(this.selectedDate) : new Date();
+  let initialStartTime: string;
+  let initialEndTime: string;
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.addAppointment(
-          result.date,
-          result.title,
-          result.startTime,
-          result.endTime
-        );
-      }
-    });
-  }
+  if (this.selectedStartTime) { // Veio de um clique em slot de tempo (week/day view)
+    initialStartTime = this.selectedStartTime; // selectedStartTime já deve estar em "HH:mm"
+    const [startHourStr, startMinuteStr] = this.selectedStartTime.split(':');
+    let startHour = parseInt(startHourStr, 10);
 
-  getAppointmentsForDate(day: Date, timeSlots: string[]) {
-    return this.appointments
-      .filter((appointment) => {
-        return this.isSameDate(appointment.date, day);
-      })
-      .map((appointment) => {
-        const startTimeIndex = timeSlots.indexOf(appointment.startTime);
-        const endTimeIndex = timeSlots.indexOf(appointment.endTime);
-        return { ...appointment, startTimeIndex, endTimeIndex };
-      });
-  }
+    let endHour = startHour + 1;
+    if (endHour > 23) { // Se a hora final passar de 23
+        endHour = 23; // Limita a 23
+        initialEndTime = `23:59`; // E o minuto a 59 para o último slot possível
+    } else {
+        initialEndTime = `${endHour.toString().padStart(2, '0')}:${startMinuteStr}`;
+    }
 
-  drop(event: CdkDragDrop<Appointment[]>, date: Date, slot?: string) {
-    const movedAppointment = event.item.data;
-    movedAppointment.date = date;
-    if (slot) {
-      movedAppointment.startTime = slot;
-      movedAppointment.endTime = slot;
+  } else { // Botão "Add Appointment" ou clique na célula do mês
+    // Define um horário padrão ou a hora atual arredondada
+    const currentHour = now.getHours();
+    const currentMinutes = now.getMinutes(); // Usar minutos atuais
+
+    initialStartTime = `${currentHour.toString().padStart(2, '0')}:${currentMinutes.toString().padStart(2, '0')}`;
+
+    let endHour = currentHour + 1;
+    if (endHour > 23) {
+        endHour = 23;
+        initialEndTime = `23:59`;
+    } else {
+        initialEndTime = `${endHour.toString().padStart(2, '0')}:${currentMinutes.toString().padStart(2, '0')}`;
     }
   }
+
+  const dialogRef = this.dialog.open(AppointmentDialogComponent, {
+    width: '550px', // Aumentei um pouco para os campos lado a lado
+    panelClass: 'dialog-container',
+    data: {
+      startDate: selectedDateForDialog,
+      endDate: new Date(selectedDateForDialog), // Por padrão, mesmo dia
+      title: '',
+      startTime: initialStartTime, // Deve ser "HH:mm"
+      endTime: initialEndTime,   // Deve ser "HH:mm"
+      uuid: null,
+    } as AppointmentDialogData,
+  });
+
+  dialogRef.afterClosed().subscribe((result?: AppointmentDialogData) => {
+    if (result && !result.remove) {
+      // Os valores de result.startTime e result.endTime virão como "HH:mm"
+      this.addAppointment(
+        result.startDate,
+        result.endDate,
+        result.title,
+        result.startTime,
+        result.endTime
+      );
+    }
+  });
+}
+
+
+  drop(event: CdkDragDrop<Appointment[]>, newCellDate: Date, slot?: string) {
+    const movedAppointment = event.item.data as Appointment;
+
+    // Calcula a duração do evento em milissegundos
+    const originalStartDate = new Date(movedAppointment.startDate);
+    const originalEndDate = new Date(movedAppointment.endDate);
+    const duration = originalEndDate.getTime() - originalStartDate.getTime();
+
+    // A nova data de início é a data da célula onde o evento foi solto
+    let newStartDate = new Date(newCellDate);
+
+    if (slot && (this.currentView === CalendarView.Week || this.currentView === CalendarView.Day)) {
+        // Se houver um slot (visão de semana/dia), ajusta a hora de início
+        const [hours, minutes] = slot.split(':').map(Number);
+        newStartDate.setHours(hours, minutes, 0, 0);
+        movedAppointment.startTime = slot;
+
+        // Para eventos de um único dia, o endTime pode ser ajustado com base no startTime
+        // Se for um evento de múltiplos dias, o startTime do primeiro dia é atualizado.
+        // A duração do evento (em dias) é mantida.
+        if (this.isSameDate(originalStartDate, originalEndDate)) {
+            // Se era um evento de um único dia, calcula o novo endTime com base na duração original em horas/minutos
+            const originalStartTimeParts = movedAppointment.startTime.split(':').map(Number);
+            const originalEndTimeParts = movedAppointment.endTime.split(':').map(Number);
+
+            const startDateTime = new Date(0);
+            startDateTime.setHours(originalStartTimeParts[0], originalStartTimeParts[1]);
+            const endDateTime = new Date(0);
+            endDateTime.setHours(originalEndTimeParts[0], originalEndTimeParts[1]);
+            const timeDuration = endDateTime.getTime() - startDateTime.getTime();
+
+            const newEndDateTime = new Date(newStartDate.getTime() + timeDuration);
+            movedAppointment.endTime = `${newEndDateTime.getHours().toString().padStart(2, '0')}:${newEndDateTime.getMinutes().toString().padStart(2, '0')}`;
+        }
+
+    } else {
+        // Para a visão mensal, ou se não houver slot, a hora de início permanece a original do evento
+        const [startHours, startMinutes] = movedAppointment.startTime.split(':').map(Number);
+        newStartDate.setHours(startHours, startMinutes, 0, 0);
+    }
+
+    movedAppointment.startDate = newStartDate;
+    movedAppointment.endDate = new Date(newStartDate.getTime() + duration);
+
+    // Força a atualização da view se necessário, ou confia na detecção de mudanças do Angular
+    // this.generateView(this.currentView, this.viewDate);
+  }
+
 
   viewToday(): void {
     this.viewDate = new Date();
@@ -494,6 +452,7 @@ export class CalendarComponent {
   }
 
   isCurrentMonth(date: Date): boolean {
+    if(!date) return false;
     return (
       date.getMonth() === this.viewDate.getMonth() &&
       date.getFullYear() === this.viewDate.getFullYear()
@@ -501,41 +460,107 @@ export class CalendarComponent {
   }
 
   getAppointmentsForDateTime(date: Date, timeSlot: string): Appointment[] {
-    const appointmentsForDateTime: Appointment[] = this.appointments.filter(
-      (appointment) =>
-        this.isSameDate(appointment.date, date) &&
-        appointment.startTime <= timeSlot &&
-        appointment.endTime >= timeSlot
-    );
+    if (!date || !timeSlot) return [];
+    const slotTimeValue = parseInt(timeSlot.replace(':', ''), 10); // ex: "09:00" -> 900
 
-    return appointmentsForDateTime;
+    return this.appointments.filter(appointment => {
+      if (!appointment.startDate || !appointment.endDate || !appointment.startTime || !appointment.endTime) return false;
+
+      const eventStartFullDate = new Date(appointment.startDate);
+      const [startHours, startMinutes] = appointment.startTime.split(':').map(Number);
+      eventStartFullDate.setHours(startHours, startMinutes, 0, 0);
+
+      const eventEndFullDate = new Date(appointment.endDate);
+      const [endHours, endMinutes] = appointment.endTime.split(':').map(Number);
+      eventEndFullDate.setHours(endHours, endMinutes, 0, 0);
+
+      const slotDateTime = new Date(date);
+      const [slotH, slotM] = timeSlot.split(':').map(Number);
+      slotDateTime.setHours(slotH, slotM, 0, 0);
+
+      // Caso 1: Evento de um único dia
+      if (this.isSameDate(appointment.startDate, appointment.endDate)) {
+        if (this.isSameDate(date, appointment.startDate)) {
+          const appointmentStartTimeValue = parseInt(appointment.startTime.replace(':', ''), 10);
+          const appointmentEndTimeValue = parseInt(appointment.endTime.replace(':', ''), 10);
+          // O evento está no slot se o slotTime estiver entre [startTime, endTime)
+          return slotTimeValue >= appointmentStartTimeValue && slotTimeValue < appointmentEndTimeValue;
+        }
+        return false;
+      }
+      // Caso 2: Evento de múltiplos dias
+      else {
+        const slotDateOnly = new Date(date);
+        slotDateOnly.setHours(0,0,0,0);
+        const eventStartDateOnly = new Date(appointment.startDate);
+        eventStartDateOnly.setHours(0,0,0,0);
+        const eventEndDateOnly = new Date(appointment.endDate);
+        eventEndDateOnly.setHours(0,0,0,0);
+
+        // Se o slot está no dia de início do evento
+        if (this.isSameDate(slotDateOnly, eventStartDateOnly)) {
+          const appointmentStartTimeValue = parseInt(appointment.startTime.replace(':', ''), 10);
+          return slotTimeValue >= appointmentStartTimeValue;
+        }
+        // Se o slot está no dia de término do evento
+        else if (this.isSameDate(slotDateOnly, eventEndDateOnly)) {
+          const appointmentEndTimeValue = parseInt(appointment.endTime.replace(':', ''), 10);
+          return slotTimeValue < appointmentEndTimeValue;
+        }
+        // Se o slot está em um dia intermediário
+        else if (slotDateOnly > eventStartDateOnly && slotDateOnly < eventEndDateOnly) {
+          return true; // Ocupa o dia todo
+        }
+        return false;
+      }
+    });
   }
 
+
   getRandomColor(): string {
-    const r = Math.floor(Math.random() * 256);
-    const g = Math.floor(Math.random() * 256);
-    const b = Math.floor(Math.random() * 256);
-    const a = 0.4;
+    const r = Math.floor(Math.random() * 200) + 56; // Evita cores muito escuras
+    const g = Math.floor(Math.random() * 200) + 56;
+    const b = Math.floor(Math.random() * 200) + 56;
+    const a = 0.6; // Aumenta um pouco a opacidade para melhor visibilidade
     return `rgba(${r},${g},${b},${a})`;
   }
 
-  editAppointment(appointment: Appointment, event: Event) {
+  editAppointment(appointmentToEdit: Appointment, event: Event) {
+    event.stopPropagation(); // Impede que o click na célula seja acionado
     event.preventDefault();
+
+    // Cria uma cópia profunda do objeto para evitar modificações diretas no original antes de salvar
+    const appointmentData = JSON.parse(JSON.stringify(appointmentToEdit));
+    // Converte as strings de data de volta para objetos Date
+    appointmentData.startDate = new Date(appointmentData.startDate);
+    appointmentData.endDate = new Date(appointmentData.endDate);
+
+
     const dialogRef = this.dialog.open(AppointmentDialogComponent, {
       width: '500px',
       panelClass: 'dialog-container',
-      data: appointment,
+      data: appointmentData, // Passa a cópia
     });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         const index = this.appointments.findIndex(
-          (appointment) => appointment.uuid === result.uuid
+          (app) => app.uuid === result.uuid
         );
-        if (result.remove) {
-          this.appointments.splice(index, 1);
-        } else {
-          this.appointments[index] = result;
+        if (index > -1) {
+          if (result.remove) {
+            this.appointments.splice(index, 1);
+          } else {
+            // Atualiza o evento existente com os novos dados
+            this.appointments[index] = {
+                ...this.appointments[index], // Mantém propriedades não editáveis como a cor
+                ...result,
+                startDate: new Date(result.startDate), // Garante que são objetos Date
+                endDate: new Date(result.endDate)
+            };
+          }
+          // Opcional: forçar a re-renderização ou atualização da view se necessário
+          // this.generateView(this.currentView, this.viewDate);
         }
       }
     });

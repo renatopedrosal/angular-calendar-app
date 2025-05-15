@@ -2,6 +2,16 @@
   --header-height: 42px;
   --total-weeks: 6;
 }
+
+mat-form-field.disabled-subscritp-wrapper
+  > .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+:host ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
 .container {
   max-width: 1140px;
   margin: auto;
@@ -13,50 +23,52 @@
   z-index: 0;
   cursor: pointer;
 }
-.appointment {
+.task {
   position: relative;
   z-index: 9;
   padding: 5px 10px; // Padding interno para o conteúdo (título)
-  margin-top: 2px;   // Margem acima de cada evento
-  // margin-bottom: 2px; // Opcional: Adicionar se quiser espaçamento inferior também
+  margin-top: 2px; // Margem acima de cada evento
   font-size: 12px;
   display: flex;
   align-items: center; // Alinha o texto/conteúdo verticalmente
-  // background: lavender; // A cor de fundo principal virá do [ngStyle] no HTML
   cursor: pointer;
-  // As margens laterais e o border-radius serão aplicados especificamente abaixo
 
   span {
     text-align: left;
-    line-height: 15px; // Como definido anteriormente
-    white-space: nowrap;     // Impede que o texto do título quebre em várias linhas
-    overflow: hidden;        // Esconde o texto que excede a largura do span
-    text-overflow: ellipsis; // Adiciona "..." ao final do texto truncado
-    min-width: 0; // Ajuda no comportamento do flex e text-overflow em alguns navegadores
+    line-height: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex-grow: 1; /* Permite que o span ocupe o espaço disponível */
+    /* justify-content e align-items removidos, pois o checkbox foi removido */
   }
 
   // Estilos para o segmento inicial de um evento
   &.event-start {
-    margin-left: 3px; // Mantém a margem esquerda original
+    margin-left: 3px;
     border-top-left-radius: 5px;
     border-bottom-left-radius: 5px;
-    // Se for um evento de um dia, também terá a classe .event-end,
-    // aplicando as bordas e margens corretas.
   }
 
   // Estilos para os segmentos do meio de um evento
   &.event-middle {
-    margin-left: 0;  // Remove a margem esquerda para conectar ao segmento anterior
-    margin-right: 0; // Remove a margem direita para conectar ao próximo segmento
-    border-radius: 0; // Remove os cantos arredondados
-    // O padding interno (5px 10px) ainda se aplica, mantendo o espaço para o conteúdo (mesmo que oculto)
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 0;
   }
 
   // Estilos para o segmento final de um evento
   &.event-end {
-    margin-right: 3px; // Mantém a margem direita original
+    margin-right: 3px;
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
+  }
+
+  &.completed {
+    text-decoration: line-through; /* Risca o texto */
+    opacity: 0.7; /* Diminui um pouco a opacidade */
+    // Você pode adicionar outros estilos para tarefas concluídas aqui, como cor de fundo diferente ou borda.
   }
 }
 .calendar-view-month {
@@ -204,9 +216,20 @@
     width: 100%;
     height: var(--header-height);
     padding: 10px 0;
+    flex-wrap: wrap;
+
+    @media (max-width: 768px) {
+      margin-top: 10px;
+      width: 100%;
+      justify-content: center;
+      gap: 10px;
+    }
 
     h2 {
       margin: 0;
+      @media (max-width: 768px) {
+        font-size: 1.5rem;
+      }
     }
 
     .calendar-month {
@@ -219,6 +242,19 @@
     .calendar-controls {
       display: flex;
       justify-content: flex-end;
+      @media (max-width: 768px) {
+        margin-top: 10px;
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    .employee-filter {
+      min-width: 150px;
+      @media (max-width: 768px) {
+        margin-top: 10px;
+        width: 100%;
+      }
     }
   }
 }

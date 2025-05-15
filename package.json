@@ -7,7 +7,7 @@
     "url": "https://github.com/jekingohel/angular-calendar-app.git"
   },
   "homepage": "https://github.com/jekingohel/angular-calendar-app",
-  "description": "A simple calendar app built with Angular, Angular Material, and Angular CDK for managing appointments.",
+  "description": "A simple calendar app built with Angular, Angular Material, and Angular CDK for managing tasks.",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -58,6 +58,6 @@
     "drag-and-drop",
     "lazyload",
     "event",
-    "appointment"
+    "task"
   ]
 }

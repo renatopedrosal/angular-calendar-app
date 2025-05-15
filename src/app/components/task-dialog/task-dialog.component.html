@@ -1,0 +1,124 @@
+<div class="dialog-content">
+  <h5 mat-dialog-title *ngIf="!data.uuid">Adicionar Tarefa</h5>
+  <h5 mat-dialog-title *ngIf="data.uuid">Editar Tarefa</h5>
+  <div [formGroup]="taskForm">
+    <div mat-dialog-content>
+      <mat-form-field class="form-field">
+        <mat-label>Título</mat-label>
+        <input formControlName="title" matInput [disabled]="isUserAndEditing" />
+      </mat-form-field>
+
+      <mat-form-field class="form-field">
+        <mat-label>Descrição</mat-label>
+        <textarea
+          matInput
+          formControlName="description"
+          cdkTextareaAutosize
+          #autosize="cdkTextareaAutosize"
+          cdkAutosizeMinRows="3"
+          cdkAutosizeMaxRows="10"
+          [disabled]="isUserAndEditing"
+        ></textarea>
+      </mat-form-field>
+
+      <mat-form-field *ngIf="isManager" class="form-field">
+        <mat-label>Usuário</mat-label>
+        <mat-select formControlName="assignedUserId">
+          @for (group of users; track group) {
+            <mat-optgroup [label]="group.name"
+                          [disabled]="group.disabled">
+              @for (user of group.user; track user) {
+                <mat-option [value]="user.id">{{user.name}}</mat-option>
+              }
+            </mat-optgroup>
+          }
+        </mat-select>
+      </mat-form-field>
+
+       <mat-form-field class="form-field" *ngIf="isUserAndEditing && data.assignedUserId && data.assignedUserId !== currentUser.id">
+           <mat-label>Funcionário Atribuído</mat-label>
+           <input matInput [value]="getUserName(data.assignedUserId)" disabled />
+      </mat-form-field>
+      <div class="form-row">
+        <mat-form-field class="form-field-half" appearance="outline">
+          <mat-label>Data de Início</mat-label>
+          <input matInput [matDatepicker]="startDatePicker" formControlName="startDate" [disabled]="isUserAndEditing" />
+          <mat-datepicker-toggle matSuffix [for]="startDatePicker" *ngIf="!isUserAndEditing"></mat-datepicker-toggle>
+          <mat-datepicker #startDatePicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field class="form-field-half" appearance="outline">
+          <mat-label>Hora de Início</mat-label>
+          <input matInput type="time" formControlName="startTime" [disabled]="isUserAndEditing" />
+          <mat-error *ngIf="taskForm.get('startTime')?.hasError('required')">
+            A hora de início é obrigatória.
+          </mat-error>
+          <mat-error *ngIf="taskForm.get('startTime')?.hasError('pattern')">
+            Formato de hora inválido.
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field class="form-field-half" appearance="outline">
+          <mat-label>Data de Fim</mat-label>
+          <input matInput [matDatepicker]="endDatePicker" formControlName="endDate" [disabled]="isUserAndEditing" />
+          <mat-datepicker-toggle matSuffix [for]="endDatePicker" *ngIf="!isUserAndEditing"></mat-datepicker-toggle>
+          <mat-datepicker #endDatePicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field class="form-field-half" appearance="outline">
+          <mat-label>Hora de Fim</mat-label>
+          <input matInput type="time" formControlName="endTime" [disabled]="isUserAndEditing" />
+          <mat-error *ngIf="taskForm.get('endTime')?.hasError('required')">
+            A hora de término é obrigatória.
+          </mat-error>
+          <mat-error *ngIf="taskForm.get('endTime')?.hasError('pattern')">
+            Formato de hora inválido.
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div *ngIf="taskForm.hasError('dateRangeInvalid')" class="error">
+        A data de término deve ser depois ou igual à data de início.
+      </div>
+      <div *ngIf="taskForm.hasError('timeRangeInvalidForSameDate')" class="error">
+        A data/hora de término deve ser depois da data/hora de início.
+      </div>
+
+      <mat-checkbox
+          formControlName="completed"
+          *ngIf="data.uuid && (isManager || data.assignedUserId === currentUser.id)"
+          class="completion-checkbox-dialog"
+        >
+          Tarefa Concluída
+        </mat-checkbox>
+      </div>
+    <div mat-dialog-actions class="buttons-container">
+      <button
+        type="submit"
+        mat-flat-button
+        (click)="onSaveClick()"
+        [disabled]="taskForm.invalid || (isUserAndEditing && !taskForm.dirty)"
+        *ngIf="isManager || data.uuid" >
+        <span *ngIf="data.uuid">Salvar Alterações</span>
+        <span *ngIf="!data.uuid">Adicionar Tarefa</span>
+      </button>
+
+      <button
+        (click)="onDeleteClick()"
+        *ngIf="data.uuid && isManager"
+        color="warn"
+        mat-stroked-button
+      >
+        Excluir
+      </button>
+      <button
+        mat-stroked-button
+        (click)="onNoClick()"
+      >
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>

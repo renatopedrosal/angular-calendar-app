@@ -1,19 +1,19 @@
 # Angular Calendar Application
 
-This is a simple calendar application built using Angular, Angular Material, and Angular CDK. The application allows users to manage appointments through a calendar interface.
+This is a simple calendar application built using Angular, Angular Material, and Angular CDK. The application allows users to manage tasks through a calendar interface.
 
 ![Month View](/screenshots/1.png?raw=true "Month View")
 ![Week View](/screenshots/2.png?raw=true "Week View")
 ![Day View](/screenshots/3.png?raw=true "Day View")
-![Add Appointment](/screenshots/4.png?raw=true "Add Appointment")
-![Edit Appointment](/screenshots/5.png?raw=true "Edit Appointment")
+![Add Task](/screenshots/4.png?raw=true "Add Task")
+![Edit Task](/screenshots/5.png?raw=true "Edit Task")
 
 
 ## Features
-- **Add Appointment Form**: Allows users to add new appointments with date and description.
-- **Delete Appointment**: Provides functionality to delete existing appointments.
-- **Move Appointment**: Implements drag-and-drop functionality using Angular CDK to move appointments between dates.
-- **Calendar View**: Renders a monthly, weekly and day calendar view with highlighted dates containing appointments.
+- **Add Task Form**: Allows users to add new tasks with date and description.
+- **Delete Task**: Provides functionality to delete existing tasks.
+- **Move Task**: Implements drag-and-drop functionality using Angular CDK to move tasks between dates.
+- **Calendar View**: Renders a monthly, weekly and day calendar view with highlighted dates containing tasks.
 - **Form Validation**: Utilizes Angular forms with validators for ensuring data integrity.
 
 ## Technologies Used
@@ -22,9 +22,9 @@ This is a simple calendar application built using Angular, Angular Material, and
 - **Angular CDK**: Provides tools to implement common interaction patterns (like drag-and-drop).
 
 ## Usage
-- **Adding an Appointment**: Click on a date to open the add appointment form, fill in the details, and submit.
-- **Deleting an Appointment**: Click on the delete icon next to an appointment to remove it.
-- **Moving an Appointment**: Drag an appointment to another date to reschedule it.
+- **Adding an Task**: Click on a date to open the add task form, fill in the details, and submit.
+- **Deleting an Task**: Click on the delete icon next to an task to remove it.
+- **Moving an Task**: Drag an task to another date to reschedule it.
 
 ## Development server
 

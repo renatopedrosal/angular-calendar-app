@@ -24,15 +24,31 @@
         aria-label="Calendar-View"
       >
         <mat-button-toggle checked="{{ true }}" value="{{ CalendarView.Month }}"
-          >Month</mat-button-toggle
+          >Mês</mat-button-toggle
         >
         <mat-button-toggle value="{{ CalendarView.Week }}"
-          >Week</mat-button-toggle
+          >Semana</mat-button-toggle
         >
         <mat-button-toggle value="{{ CalendarView.Day }}"
-          >Day</mat-button-toggle
+          >Dia</mat-button-toggle
         >
       </mat-button-toggle-group>
+
+      <mat-form-field *ngIf="isManager" class="user-filter">
+        <mat-label>Filtrar por Usuário</mat-label>
+        <mat-select [(ngModel)]="filterUserId" (ngModelChange)="applyFilter()">
+          <mat-option value="">Todos</mat-option>
+          @for (group of usersGroups; track group) {
+            <mat-optgroup [label]="group.name"
+                          [disabled]="group.disabled">
+              @for (user of group.user; track user) {
+                <mat-option [value]="user.id">{{user.name}}</mat-option>
+              }
+            </mat-optgroup>
+          }
+        </mat-select>
+      </mat-form-field>
+
       <div class="calendar-controls">
         <button
           mat-icon-button
@@ -48,7 +64,7 @@
           (keydown.enter)="viewToday()"
           (keydown.space)="viewToday()"
         >
-          Today
+          Hoje
         </button>
         <button
           mat-icon-button
@@ -63,19 +79,18 @@
           (click)="selectDate()"
           (keydown.enter)="selectDate()"
           (keydown.space)="selectDate()"
+          *ngIf="isManager"
         >
-          Add Appointment
+          Adicionar Tarefa
         </button>
       </div>
     </div>
 
-    <!-- Month @start -->
     <table
       width="100%"
       cellspacing="0"
       cellpadding="0"
       class="calendar-view-month"
-      *ngIf="currentView === 'month'"
     >
       <thead>
         <tr>
@@ -90,7 +105,7 @@
             *ngFor="let date of week"
             cdkDropList
             (cdkDropListDropped)="drop($event, date)"
-            [cdkDropListData]="appointments"
+            [cdkDropListData]="filteredTasks"
             [class.today]="isToday(date)"
             [ngStyle]="{ opacity: isCurrentMonth(date) ? '1' : '0.5' }"
           >
@@ -100,30 +115,29 @@
               (keydown.space)="selectDate(date)"
               class="cell-overlay"
               tabindex="0"
-            ></div>
+              *ngIf="isManager" ></div>
             <div class="date">
               {{ date.getDate() }}
             </div>
-            <div class="appointments">
-              <ng-container *ngFor="let appointment of appointments">
+            <div class="tasks">
+              <ng-container *ngFor="let task of getTasksForDate(date, filteredTasks)">
                 <div
                   tabindex="0"
-                  *ngIf="isDateInRange(date, appointment.startDate, appointment.endDate)"
-                  class="appointment"
-                  [class.event-start]="isSameDate(appointment.startDate, date)"
-                  [class.event-end]="isSameDate(appointment.endDate, date)"
-                  [class.event-middle]="!isSameDate(appointment.startDate, date) && !isSameDate(appointment.endDate, date) && isDateInRange(date, appointment.startDate, appointment.endDate)"
-                  cdkDrag
+                  *ngIf="isDateInRange(date, task.startDate, task.endDate)"
+                  class="task"
+                  [class.event-start]="isSameDate(task.startDate, date)"
+                  [class.event-end]="isSameDate(task.endDate, date)"
+                  [class.event-middle]="!isSameDate(task.startDate, date) && !isSameDate(task.endDate, date) && isDateInRange(date, task.startDate, task.endDate)"
+                  [class.completed]="task.completed" cdkDrag
                   cdkDragHandle
-                  [cdkDragData]="appointment"
-                  [ngStyle]="{ 'background-color': appointment.color }"
-                  (click)="editAppointment(appointment, $event)"
-                  (keydown.enter)="editAppointment(appointment, $event)"
-                  (keydown.space)="editAppointment(appointment, $event)"
+                  [cdkDragData]="task"
+                  [ngStyle]="{ 'background-color': task.color }"
+                  (click)="editTask(task, $event)" (keydown.enter)="editTask(task, $event)"
+                  (keydown.space)="editTask(task, $event)"
                 >
-                  <span [style.visibility]="(isSameDate(appointment.startDate, date) || isSameDate(appointment.startDate, appointment.endDate)) ? 'visible' : 'hidden'">
-  {{ appointment.title }}
-</span>
+                  <span [style.visibility]="(isSameDate(task.startDate, date) || isSameDate(task.startDate, task.endDate)) ? 'visible' : 'hidden'">
+                    {{ task.title }}
+                    <span *ngIf="task.assignedUserId && isManager">({{ getUserName(task.assignedUserId) }})</span> </span>
                 </div>
               </ng-container>
             </div>
@@ -131,9 +145,6 @@
         </tr>
       </tbody>
     </table>
-    <!-- Month @end -->
-
-    <!-- Week View -->
     <table
       width="100%"
       cellspacing="0"
@@ -158,7 +169,7 @@
             *ngFor="let day of weekDays; index as i"
             cdkDropList
             (cdkDropListDropped)="drop($event, monthDays[i], timeSlot)"
-            [cdkDropListData]="appointments"
+            [cdkDropListData]="filteredTasks"
           >
             <div
               (click)="selectDate(monthDays[i], timeSlot)"
@@ -166,32 +177,33 @@
               (keydown.space)="selectDate(monthDays[i], timeSlot)"
               class="cell-overlay"
               tabindex="0"
-            ></div>
+              *ngIf="isManager" ></div>
             <div
               tabindex="0"
               *ngFor="
-                let appointment of getAppointmentsForDateTime(
+                let task of getTasksForDateTime(
                   monthDays[i],
-                  timeSlot
+                  timeSlot,
+                  filteredTasks
                 )
               "
-              class="appointment"
-              cdkDrag
+              class="task"
+              [class.completed]="task.completed" cdkDrag
               cdkDragHandle
-              [cdkDragData]="appointment"
-              [ngStyle]="{ 'background-color': appointment.color }"
-              (click)="editAppointment(appointment, $event)"
-              (keydown.enter)="editAppointment(appointment, $event)"
-              (keydown.space)="editAppointment(appointment, $event)"
+              [cdkDragData]="task"
+              [ngStyle]="{ 'background-color': task.color }"
+              (click)="editTask(task, $event)" (keydown.enter)="editTask(task, $event)"
+              (keydown.space)="editTask(task, $event)"
             >
-              <span>{{ appointment.title }}</span>
+              <span>
+                {{ task.title }}
+                 <span *ngIf="task.assignedUserId && isManager">({{ getUserName(task.assignedUserId) }})</span> </span>
             </div>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- Day View -->
     <table
       width="100%"
       cellspacing="0"
@@ -207,7 +219,7 @@
           <td
             cdkDropList
             (cdkDropListDropped)="drop($event, monthDays[0], slot)"
-            [cdkDropListData]="appointments"
+            [cdkDropListData]="filteredTasks"
           >
             <div
               (click)="selectDate(monthDays[0], slot)"
@@ -215,25 +227,27 @@
               (keydown.space)="selectDate(monthDays[0], slot)"
               class="cell-overlay"
               tabindex="0"
-            ></div>
+               *ngIf="isManager" ></div>
             <div
               tabindex="0"
               *ngFor="
-                let appointment of getAppointmentsForDateTime(
+                let task of getTasksForDateTime(
                   monthDays[0],
-                  slot
+                  slot,
+                  filteredTasks
                 )
               "
-              class="appointment"
-              cdkDrag
+              class="task"
+              [class.completed]="task.completed" cdkDrag
               cdkDragHandle
-              [cdkDragData]="appointment"
-              [ngStyle]="{ 'background-color': appointment.color }"
-              (click)="editAppointment(appointment, $event)"
-              (keydown.enter)="editAppointment(appointment, $event)"
-              (keydown.space)="editAppointment(appointment, $event)"
+              [cdkDragData]="task"
+              [ngStyle]="{ 'background-color': task.color }"
+              (click)="editTask(task, $event)" (keydown.enter)="editTask(task, $event)"
+              (keydown.space)="editTask(task, $event)"
             >
-              <span>{{ appointment.title }}</span>
+              <span>
+                {{ task.title }}
+                <span *ngIf="task.assignedUserId && isManager">({{ getUserName(task.assignedUserId) }})</span> </span>
             </div>
           </td>
         </tr>

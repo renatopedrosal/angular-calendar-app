@@ -1,20 +1,20 @@
-import { NgModule } from '@angular/core';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
-import { CalendarComponent } from './calendar.component';
-import { RouterModule, Routes } from '@angular/router';
+import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import {
   MatButtonToggle,
   MatButtonToggleGroup,
 } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
-import { DragDropModule } from '@angular/cdk/drag-drop';
-import { AppointmentDialogComponent } from '../appointment-dialog/appointment-dialog.component';
+import { RouterModule, Routes } from '@angular/router';
+import { TaskDialogComponent } from '../task-dialog/task-dialog.component';
+import { CalendarComponent } from './calendar.component';
 
 const routes: Routes = [{ path: '', component: CalendarComponent }];
 
 @NgModule({
-  declarations: [CalendarComponent],
+  declarations: [],
   imports: [
     CommonModule,
     MatButtonModule,
@@ -22,7 +22,7 @@ const routes: Routes = [{ path: '', component: CalendarComponent }];
     MatButtonToggle,
     MatIconModule,
     DragDropModule,
-    AppointmentDialogComponent,
+    TaskDialogComponent,
     RouterModule.forChild(routes),
   ],
 })

@@ -74,7 +74,9 @@ export class CalendarComponent implements OnInit, OnDestroy {
   currentView: CalendarView = CalendarView.Month;
 
   // Simulação de usuário logado (substituir pela lógica real de autenticação)
-  // currentUser: User = { id: 'emp-1', role: 'user' }; // Altere para 'manager' para testar como gestor
+  // currentUser: UserSystem = { id: 'emp-1', role: 'user' }; // Altere para 'manager' para testar como gestor
+  // currentUser: UserSystem = { id: 'emp-2', role: 'user' }; // Altere para 'manager' para testar como gestor
+  // currentUser: UserSystem = { id: 'emp-3', role: 'user' }; // Altere para 'manager' para testar como gestor
   currentUser: UserSystem = { id: 'mng-1', role: 'manager' }; // Altere para 'manager' para testar como gestor
   isManager: boolean = this.currentUser.role === 'manager';
 
